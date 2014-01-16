@@ -122,7 +122,8 @@ traceOne a = trace ('\n' : show a) a
 
 disjointTVars :: TypingJudgment -> TypingJudgment -> Bool
 disjointTVars aJudg @ (Judgment aCtx aTerm aType) bJudg @ (Judgment bCtx bTerm bType) =
-  null $ traceOne (getTVarsJudg aJudg) `L.intersect` traceOne (getTVarsJudg bJudg)
+  --null $ traceOne (getTVarsJudg aJudg) `L.intersect` traceOne (getTVarsJudg bJudg)
+  null $ (getTVarsJudg aJudg) `L.intersect` (getTVarsJudg bJudg)
 
 getTVars :: Type -> [Name]
 getTVars (TypeVar n) = [n]
