@@ -67,11 +67,14 @@ freeVars :: Type -> [Name]
 freeVars (TypeVar n) = pure n
 freeVars (Fun t u) = freeVars t <|> freeVars u
 
+type Err = Either String
 -- Based on
 -- http://www.dmi.unict.it/~barba/LinguaggiII.html/READING_MATERIAL/LAMBDACALCULUS/LAMBDACALCULUS.1.HTM
-unify :: Type -> Type -> Either String Subst
+unify :: Type -> Type -> Err Subst
 unify (TypeVar n) tau | not (n `elem` freeVars tau) = Right $ singletonSubst n tau
+-- Forgot in the reference given above!
 unify (TypeVar n) (TypeVar n1) | n == n1 = Right $ emptySubst
+
 unify t1 t2@(TypeVar n) = unify t2 t1
 unify (Fun t1 u1) (Fun t2 u2) = do
   s1 <- unify t1 t2
