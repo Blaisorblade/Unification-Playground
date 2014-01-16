@@ -43,6 +43,7 @@ tests
 	, testCase "compose4" test_compose4
 	, testCase "compose5" test_compose5
 	, testCase "wand" test_wand
+	, testCase "failure" test_failure
 	]
     ]
 
@@ -77,12 +78,14 @@ testUnify t1 t2 = st1 @?= st2
   where
     (st1, st2) = baseUnifySubst t1 t2
 
-unifyShouldFail t1 t2 = do
-  case (unify t1 t2) of
+shouldFail res errArg = do
+  case res of
     Left _ -> assert True
     Right s ->
-      assertFailure $ "Unexpected substitution: " ++ show s ++ "; after substitution, the terms give: " ++ (show $ unifySubst t1 t2)
-  
+      assertFailure $ "Unexpected substitution: " ++ show s ++ "; after substitution, the terms give: " ++ (show $ errArg)
+
+unifyShouldFail t1 t2 = shouldFail (unify t1 t2) (unifySubst t1 t2)
+unify_eqsShouldFail eqs = shouldFail (unify_eqs eqs) ""
 
 test_compose1 = testUnify (fun a (fun b c)) (fun (fun c d) e)
 test_compose2 = testUnify (fun a (fun b c)) (fun (fun b c) e)
@@ -121,5 +124,7 @@ eqs_example =
   , t9 =:> t7 =:= t3
   , t9 =:= t5
   ]
+
+test_failure = unify_eqsShouldFail [ t0 =:= t1 =:> t2, t0 =:= t1 ]
 
 -- vim: set sw=2:
