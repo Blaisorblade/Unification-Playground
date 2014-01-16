@@ -1,9 +1,10 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving, DeriveDataTypeable #-}
 module Unify where
 
 import Control.Applicative
 import Data.Maybe
 import Data.Monoid
+import Data.Generics
 import Data.Map hiding (foldl, map)
 import qualified Data.Map as M
 
@@ -16,11 +17,11 @@ instance Monad (Either String) where
   fail = Left
 -}
 
-newtype Name = N String deriving (Eq, Ord, Show)
+newtype Name = N String deriving (Eq, Ord, Show, Data, Typeable)
 data Type
   = TypeVar Name
   | Fun Type Type
-  deriving (Show, Eq)
+  deriving (Show, Eq, Data, Typeable)
 
 -- "Smart" constructors
 tVar :: String -> Type
