@@ -108,7 +108,7 @@ typeInfer (App fun arg) = do
   let mergedContext = contextSubst (traceOne subst) funCtx `union` contextSubst subst argCtx
   return $ Judgment mergedContext (ttermSubst subst (TApp funTJudg argTJudg)) (doSubst subst newTVar)
 
-getTVarsJudg = everything (++) (mkQ [] getTVars)
+getTVarsJudg = everything (L.union) (mkQ [] getTVars)
 
 traceOne a = trace ('\n' : show a) a
 --traceOne a = a
