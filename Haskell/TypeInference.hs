@@ -73,9 +73,16 @@ fresh = state (\counter -> (N $ "x_" ++ show counter, counter + 1))
 freshTVar :: TInferM Type
 freshTVar = TypeVar <$> fresh
 
--- Non-constraint-based type inference.
+-- Non-constraint-based type inference, taken from slides by Peter Thiemann and
+-- Manuel Geffken:
+-- https://proglang.informatik.uni-freiburg.de/teaching/compilerbau/2012ws/17-simply-typed.pdf
 -- It is not constraint-based because unification is not done in one big swoop
 -- at the end, but interleaved in between.
+--
+-- Moreover, in this description of type inference, the context is an output,
+-- not an input of type inference.
+--
+-- In this implementation, the freshness condition are expressed through a stateful generator of fresh variables.
 typeInfer :: Term -> TInferM TypingJudgment
 
 typeInfer (Var name) = do
