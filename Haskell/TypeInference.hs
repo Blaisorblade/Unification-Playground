@@ -88,7 +88,7 @@ freshTVar = TypeVar <$> fresh
 -- flip runState 0 $ typeInfer (App (var "fun") (var "arg"))  -- succeeds
 -- flip runState 0 $ typeInfer (App (var "fun") (var "fun"))  -- fails as expected, but not gracefully
 -- flip runState 0 $ typeInfer (App (Lam (N "fun") (var "fun")) (App (var "fun1") (var "arg"))) -- succeeds
--- flip runState 0 $ typeInfer (App (Lam (N "fun") (var "fun")) (App (var "fun") (var "arg")))  -- fails, unexpectedly, probably due to shadowing.
+-- flip runState 0 $ typeInfer (App (Lam (N "fun") (var "fun")) (App (var "fun") (var "arg")))  -- succeeds
 
 typeInfer :: Term -> TInferM TypingJudgment
 
@@ -97,14 +97,18 @@ typeInfer (Var name) = do
   let ctx = pushCtx name tVar emptyCtx
   return $ Judgment ctx (TVar name) tVar
 
+-- Here we must remove the variable from the context, since it's not bound any
+-- more and it must be kept distinct from variables with the same name in other
+-- contexts. Types for multiple occurrences of the same variable must instead be
+-- unified.
 typeInfer (Lam varName body) = do
   bodyTJudg @ (Judgment ctx tBody bodyType) <- typeInfer body
   case lookupCtx varName ctx of
     Just varType ->
-      return $ Judgment ctx (TLam varName varType bodyTJudg) (fun varType bodyType)
+      return $ Judgment (M.delete varName ctx) (TLam varName varType bodyTJudg) (fun varType bodyType)
     Nothing -> do
       newTVar <- freshTVar
-      return $ Judgment (pushCtx varName newTVar ctx) (TLam varName newTVar bodyTJudg) (fun newTVar bodyType)
+      return $ Judgment ctx (TLam varName newTVar bodyTJudg) (fun newTVar bodyType)
 
 typeInfer (App fun arg) = do
   funTJudg @ (Judgment funCtx funTerm funType) <- typeInfer fun
