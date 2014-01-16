@@ -84,6 +84,12 @@ freshTVar = TypeVar <$> fresh
 --
 -- In this implementation, the freshness condition are expressed through a stateful generator of fresh variables.
 -- Warning: bugs are expected.
+-- Current testcases:
+-- flip runState 0 $ typeInfer (App (var "fun") (var "arg"))  -- succeeds
+-- flip runState 0 $ typeInfer (App (var "fun") (var "fun"))  -- fails as expected, but not gracefully
+-- flip runState 0 $ typeInfer (App (Lam (N "fun") (var "fun")) (App (var "fun1") (var "arg"))) -- succeeds
+-- flip runState 0 $ typeInfer (App (Lam (N "fun") (var "fun")) (App (var "fun") (var "arg")))  -- fails, unexpectedly, probably due to shadowing.
+
 typeInfer :: Term -> TInferM TypingJudgment
 
 typeInfer (Var name) = do
