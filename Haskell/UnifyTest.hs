@@ -15,6 +15,7 @@ import Test.QuickCheck.Property
 import Test.HUnit
 
 import Data.List
+import qualified Data.Map as M
 
 --deriving instance Arbitrary Name
 instance Arbitrary Name where
@@ -41,6 +42,7 @@ tests
 	, testCase "compose3" test_compose3
 	, testCase "compose4" test_compose4
 	, testCase "compose5" test_compose5
+	, testCase "wand" test_wand
 	]
     ]
 
@@ -87,4 +89,37 @@ test_compose2 = testUnify (fun a (fun b c)) (fun (fun b c) e)
 test_compose3 = testUnify (fun a (fun b c)) (fun (fun b c) a)
 test_compose4 = unifyShouldFail (fun a (fun b c)) (fun (fun a c) a) -- Should fail
 test_compose5 = unifyShouldFail (fun a (fun b c)) (fun (fun b c) b)
+
+-- An example of unification problem, from Wand's "A Simple Algorithm and Proof
+-- for Type Inference" (1987).
+wand_example = unify_eqs eqs_example
+
+print_each :: Subst -> IO ()
+print_each = sequence_ . M.elems . M.mapWithKey (curry print) . unSubst
+
+test_wand =
+  let (Right s) = wand_example in
+      doSubst s t0 @?= (t5 =:> t7 =:> t6) =:> (t5 =:> t7) =:> (t5 =:> t6)
+
+t0 = tVar "t0"
+t1 = tVar "t1"
+t2 = tVar "t2"
+t3 = tVar "t3"
+t4 = tVar "t4"
+t5 = tVar "t5"
+t6 = tVar "t6"
+t7 = tVar "t7"
+t8 = tVar "t8"
+t9 = tVar "t9"
+
+eqs_example =
+  [ t0 =:= t1 =:> t2
+  , t2 =:= t3 =:> t4
+  , t4 =:= t5 =:> t6
+  , t1 =:= t8 =:> t7 =:> t6
+  , t8 =:= t5
+  , t9 =:> t7 =:= t3
+  , t9 =:= t5
+  ]
+
 -- vim: set sw=2:

@@ -29,6 +29,12 @@ tVar = TypeVar . N
 fun :: Type -> Type -> Type
 fun = Fun
 
+-- FIXME better names
+(=:=) = (,)
+infix 6 =:=
+(=:>) = fun
+infixr 7 =:>
+
 compose :: Subst -> Subst -> Subst
 doSubst :: Subst -> Type -> Type
 singletonSubst :: Name -> Type -> Subst
