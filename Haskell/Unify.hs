@@ -83,6 +83,16 @@ unify (Fun t1 u1) (Fun t2 u2) = do
 
 unify _ _ = Left "unification failure"
 
+unify_eqs :: [(Type, Type)] -> Err Subst
+-- Wrong, we need to apply the substitution before the subsequent unifications.
+--unify_eqs eqs = foldl compose emptySubst <$> mapM (uncurry unify) eqs
+--Fixed implementation:
+unify_eqs [] = return emptySubst
+unify_eqs (eq : eqs) = do
+  s1 <- uncurry unify eq
+  s2 <- unify_eqs (map (fmap (doSubst s1)) eqs)
+  return $ s2 `compose` s1
+
 successful :: Either a b -> Bool
 successful (Left _) = False
 successful (Right _) = True
