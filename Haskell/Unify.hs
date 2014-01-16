@@ -96,8 +96,10 @@ unify_eqs :: [(Type, Type)] -> Err Subst
 unify_eqs [] = return emptySubst
 unify_eqs (eq : eqs) = do
   s1 <- uncurry unify eq
-  s2 <- unify_eqs (map (fmap (doSubst s1)) eqs)
+  s2 <- unify_eqs (map (onBoth (doSubst s1)) eqs)
   return $ s2 `compose` s1
+
+onBoth f (a, b) = (f a, f b)
 
 successful :: Either a b -> Bool
 successful (Left _) = False
