@@ -83,6 +83,7 @@ freshTVar = TypeVar <$> fresh
 -- not an input of type inference.
 --
 -- In this implementation, the freshness condition are expressed through a stateful generator of fresh variables.
+-- Warning: bugs are expected.
 typeInfer :: Term -> TInferM TypingJudgment
 
 typeInfer (Var name) = do
