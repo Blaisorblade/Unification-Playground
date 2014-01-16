@@ -110,10 +110,13 @@ typeInfer (App fun arg) = do
   funTJudg @ (Judgment funCtx funTerm funType) <- typeInfer fun
   argTJudg @ (Judgment argCtx argTerm argType) <- typeInfer arg
   newTVar <- assert (disjointTVars funTJudg argTJudg) $ freshTVar
-  -- XXX Handle failure!
-  let (Right subst) = unify_eqs (traceOne ((funType =:= argType =:> newTVar) : contextEqs funCtx argCtx))
-  let mergedContext = contextSubst (traceOne subst) funCtx `union` contextSubst subst argCtx
-  return $ Judgment mergedContext (ttermSubst subst (TApp funTJudg argTJudg)) (doSubst subst newTVar)
+  case unify_eqs (traceOne ((funType =:= argType =:> newTVar) : contextEqs funCtx argCtx)) of
+    Right subst -> do
+      let mergedContext = contextSubst (traceOne subst) funCtx `union` contextSubst subst argCtx
+      return $ Judgment mergedContext (ttermSubst subst (TApp funTJudg argTJudg)) (doSubst subst newTVar)
+    Left errMsg ->
+      -- XXX Handle failure better! We need to use the Either monad for the return value - so probably we need monad transformers.
+      return $ traceShow ("Fun:", funTJudg, "Arg: ", argTJudg) undefined
 
 getTVarsJudg = everything (L.union) (mkQ [] getTVars)
 
