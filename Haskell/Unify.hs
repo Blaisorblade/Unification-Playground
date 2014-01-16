@@ -2,9 +2,9 @@
 module Unify where
 
 import Control.Applicative
-import Data.Map
 import Data.Maybe
 import Data.Monoid
+import Data.Map hiding (foldl, map)
 import qualified Data.Map as M
 
 {-
@@ -50,10 +50,12 @@ newtype Subst = Subst { unSubst :: Map Name Type }
   deriving (Monoid, Show, Eq)
 
 --compose = mappend --Wrong!
--- This is s1 (s2 x)
-compose s1 = Subst . (mappend $ unSubst s1) . M.map (doSubst s1) . unSubst
+-- This is s1 (s2 x).
+-- We use flip mappend because we don't want to lose the entries from the right.
+compose s1 s2 = Subst . (flip mappend $ unSubst s1) . M.map (doSubst s1) . unSubst $ s2
 
--- Of course, compose is much easier if substitutions are functions!
+-- Of course, compose is much easier if substitutions are functions! But then we
+-- can't show substitutions, which is rather annoying.
 
 doSubst (Subst map) (TypeVar n) = fromMaybe (TypeVar n) (M.lookup n map)
 doSubst s (Fun t u) = Fun (doSubst s t) (doSubst s u)
